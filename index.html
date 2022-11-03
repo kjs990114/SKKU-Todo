@@ -29,12 +29,12 @@
             <button type="button" id="add" class="btn btn-primary rounded-1 ms-2">add</button>
         </div>
         <div class="d-flex">
-            <div class="flex-grow-1 bg-light p-2 rounded-2 me-1 w-50">
+            <div class="flex-grow-1 p-2 rounded-2 me-1 w-50">
                 <h3>Todo</h3>
                 <div id="todo-list">
                 </div>
             </div>
-            <div class="flex-grow-1 bg-light p-2 rounded-2 w-50">
+            <div class="flex-grow-1 p-2 rounded-2 w-50">
                 <h3>Done</h3>
                 <div id="done-list">
                 </div>
@@ -42,21 +42,84 @@
         </div>
     </div>
 
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
         crossorigin="anonymous"></script>
+
+
     <script>
+        console.log("로컬저장소:", localStorage.getItem("tasks"));
+        const Type = {
+            Todo: 1,
+            Done: 2,
+        };
+
+        let tasks = [];
+        window.addEventListener("load", () => {
+            loadTasks();
+        })
+
+        function saveTasks() {
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+        function loadTasks() {
+            JSON.parse(localStorage.getItem("tasks")).forEach(t => addToList(t));
+        }
+        function addToList(task) {
+            let div = document.createElement("div");
+            div.className = "task bg-light rounded-2 p-1 ps-2 d-flex mb-1";
+
+            let span = document.createElement("span");
+            span.className = "me-auto";
+            span.textContent = task.text;
+            div.appendChild(span);
+            if (task.type === Type.Todo) {
+                let button_success = document.createElement("button");
+                button_success.className = "btn btn-sm btn-success me-1";
+                button_success.innerHTML = '<i class="bi bi-check"></i>';
+                div.appendChild(button_success);
+                button_success.addEventListener("click", () => {
+                    div.remove();
+                    task.type = Type.Done;
+                    button_success.remove();
+                    document.querySelector("#done-list").appendChild(div);
+                    saveTasks();
+                })
+            }
+
+            let button_remove = document.createElement("button");
+            button_remove.className = "btn btn-sm btn-danger";
+            button_remove.innerHTML = '<i class="bi bi-x"></i>';
+            div.appendChild(button_remove);
+
+            button_remove.addEventListener("click", () => {
+                div.remove();
+                tasks = tasks.filter(t => t !== task);
+                saveTasks();
+            });
+
+            let list = document.querySelector(task.type == Type.Todo ? "#todo-list" : "#done-list");
+            list.appendChild(div);
+            tasks.push(task);
+            saveTasks();
+        }
+
         let addBtn = document.querySelector("#add");
         addBtn.addEventListener("click", () => {
             let input = document.querySelector("#text-input");
-            let task = input.value;
-            let newTask = document.createElement("div");
-            newTask.classList.add("task", "p-1", "ps-2");
-            newTask.textContent = task;
-            let todoList = document.querySelector("#todo-list");
-            if (task != "") {
-                todoList.appendChild(newTask);
-            }
+            let text = input.value;
+
+            if (!text.length) return;
+
+            let task = {
+                text: text,
+                type: Type.Todo
+            };
+
+            addToList(task);
             input.value = "";
+            console.log(tasks);
         });
     </script>
 </body>
